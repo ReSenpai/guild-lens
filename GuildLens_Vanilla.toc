@@ -17,9 +17,9 @@ Locales\enUS.lua
 Locales\ruRU.lua
 Core\Commands.lua
 Sources\GuildRoster.lua
+Sources\GuildClub.lua
 UI\ChatResolver.lua
 Core\Lines.lua
 UI\ContextMenu.lua
 UI\GuildChat.lua
 Core\Options.lua
-Dev\Probe.lua

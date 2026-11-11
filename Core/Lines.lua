@@ -115,6 +115,42 @@ local function Status(member)
     return Color(GREY, seen and L.OfflineSince:format(seen) or L.Offline)
 end
 
+--- The member's sex from the roster's class name, which some languages give by sex ("Охотница"): 2 male, 3 female,
+--- nil when the class's name is the same for both.
+function Lines.SexFromClass(member)
+    local male = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[member.classFile]
+    local female = LOCALIZED_CLASS_NAMES_FEMALE and LOCALIZED_CLASS_NAMES_FEMALE[member.classFile]
+    if not (male and female) or male == female then
+        return nil
+    elseif member.class == female then
+        return 3
+    elseif member.class == male then
+        return 2
+    end
+    return nil
+end
+
+--- The member's race in the client's language and sex (2 male, 3 female, nil unknown), or nil.
+--- The client's own answer when it has met the character (GetPlayerInfoByGUID: the race named by sex); otherwise the
+--- race from the guild's club and the sex from the class's name, the race's female name from ns.FemaleRaceNames.
+function Lines.Race(member)
+    if member.guid and GetPlayerInfoByGUID then
+        local _, _, race, _, sex = GetPlayerInfoByGUID(member.guid)
+        if Filled(race) then
+            return race, (sex == 2 or sex == 3) and sex or nil
+        end
+    end
+    local info = ns.Club.Info(member.guid)
+    local raceInfo = info and info.race and C_CreatureInfo and C_CreatureInfo.GetRaceInfo
+        and C_CreatureInfo.GetRaceInfo(info.race)
+    if not (raceInfo and Filled(raceInfo.raceName)) then
+        return nil
+    end
+    local sex = Lines.SexFromClass(member)
+    local female = sex == 3 and ns.FemaleRaceNames and ns.FemaleRaceNames[raceInfo.clientFileString]
+    return female or raceInfo.raceName, sex
+end
+
 --- The lines about a member found in the roster.
 function Lines.ForMember(member)
     local lines = {}
@@ -131,6 +167,13 @@ function Lines.ForMember(member)
         table.insert(lines, table.concat(first, ", "))
     end
     local settings = ns.settings
+    if settings.menuRace then
+        local race, sex = Lines.Race(member)
+        if race then
+            local text = sex == 3 and L.RaceFemale or sex == 2 and L.RaceMale or "%s"
+            table.insert(lines, L.Race:format(Color(WHITE, text:format(race))))
+        end
+    end
     if settings.menuRank and Filled(member.rank) then
         table.insert(lines, L.Rank:format(Color(WHITE, Lines.RankName(member.rank))))
     end
@@ -139,6 +182,12 @@ function Lines.ForMember(member)
     end
     if settings.menuZone and Filled(member.zone) then
         table.insert(lines, L.Zone:format(Color(WHITE, member.zone)))
+    end
+    if settings.menuProfessions then
+        local professions = ns.Club.Professions(member.guid)
+        if #professions > 0 then
+            table.insert(lines, L.Professions:format(Color(WHITE, table.concat(professions, ", "))))
+        end
     end
     if settings.menuNote and Filled(member.note) then
         -- The game keeps guild notes short (31 characters), so a note fits on one line as it is.

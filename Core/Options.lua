@@ -35,9 +35,11 @@ ns.options = {
     args = {
         menu = Section(1, L.OptMenu, L.OptMenuHelp, {
             {"menuIcon", L.OptMenuIcon, L.OptMenuIconDesc},
+            {"menuRace", L.OptMenuRace, L.OptMenuRaceDesc},
             {"menuRank", L.OptMenuRank, L.OptMenuRankDesc},
             {"menuStatus", L.OptMenuStatus, L.OptMenuStatusDesc},
             {"menuZone", L.OptMenuZone, L.OptMenuZoneDesc},
+            {"menuProfessions", L.OptMenuProfessions, L.OptMenuProfessionsDesc},
             {"menuNote", L.OptMenuNote, L.OptMenuNoteDesc}
         }),
         chat = Section(2, L.OptChat, L.OptChatHelp, {

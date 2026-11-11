@@ -73,7 +73,13 @@ end
 C_Timer = {After = function(_, fn) TIMERS = (TIMERS or 0) + 1 end}
 UnitName = function() return "Re" end
 UnitGUID = function() return "Player-1-AAA" end
-GetPlayerInfoByGUID = function(guid) return "Mage", "MAGE", "Human", "Human", 3, "Alpha Beta", "" end
+-- The client knows only characters it has met: here the character itself.
+GetPlayerInfoByGUID = function(guid)
+    if guid == "Player-1-AAA" then return "Huntress", "HUNTER", RACE_SEEN, "NightElf", 3, "Re Senpai", "" end
+end
+RACE_SEEN = "Night Elf"
+LOCALIZED_CLASS_NAMES_MALE = {HUNTER = "Hunter", MAGE = "Mage", ROGUE = "Rogue", PRIEST = "Priest"}
+LOCALIZED_CLASS_NAMES_FEMALE = {HUNTER = "Huntress", MAGE = "Mage", ROGUE = "Rogue", PRIEST = "Priestess"}
 if MODERN then
     C_GuildInfo = {GuildRoster = request}
     CLASS_ICON_TCOORDS = {MAGE = {0.25, 0.49609375, 0, 0.25}, HUNTER = {0, 0.25, 0.25, 0.5}}
@@ -215,23 +221,46 @@ def run(modern):
         check(OPTIONS_OPENED == 1, "options opened")
         SlashCmdList.GUILDLENS("help")
 
-        -- The development probe
-        if MODERN then
-            C_Club = {GetGuildClubId = function() return 42 end, GetClubMembers = function() return {11, 12} end,
-                      GetMemberInfo = function(_, id) return {guid = id == 11 and "Player-2-BBB" or "Player-9", profession1Name = "Alchemy", nested = {a = {b = 1}}} end}
-            C_GuildInfo.GetPreferredPlaySettings = function(guid) if guid then error("no") end return {lfg = true} end
+        -- Race and professions: from the guild's club, the client's own answer first
+        local function linesOf(name)
+            local list = {}
+            for _, line in ipairs(ns.Lines.ForMember(ns.Roster.Find(name))) do list[#list + 1] = strip(line) end
+            return table.concat(list, " | ")
         end
-        SlashCmdList.GUILDLENS("probe")
-        local probe = GuildLensDB.probe
-        check(probe and probe.race[1].info[3] == "Human" and #probe.members == 5 and probe.members[5].self, "probe: race and members")
+        check(not linesOf("Alpha Beta"):find("Race"), "no race without a source")
         if MODERN then
-            check(probe.club.count == 2 and probe.club.members[1].profession1Name == "Alchemy", "probe: club members")
-            check(probe.club.members[1].nested.a == "<table>", "probe: two levels deep")
-            check(probe.preferred.GetPreferredPlaySettings.none[1].lfg == true and probe.preferred.GetPreferredPlaySettings.guid.error, "probe: preferred")
-            C_Club = nil
+            local infos = {
+                [11] = {guid = "Player-2-BBB", race = 2, profession1Name = "Alchemy", profession2Name = "Herbalism"},
+                [12] = {guid = "Player-4-DDD", race = 5},
+                [13] = {guid = "Player-1-AAA", race = 4, profession1Name = "Mining"},
+            }
+            C_Club = {GetGuildClubId = function() return 42 end,
+                      GetClubMembers = function() return {11, 12, 13} end,
+                      GetMemberInfo = function(_, id) return infos[id] end}
+            C_CreatureInfo = {GetRaceInfo = function(id)
+                return ({[2] = {raceName = "Orc", clientFileString = "Orc"}, [4] = {raceName = "Night Elf", clientFileString = "NightElf"},
+                         [5] = {raceName = "Undead", clientFileString = "Scourge"}})[id]
+            end}
+            local alpha = linesOf("Alpha Beta")
+            check(alpha:find("Orc") and not alpha:find("female") and not alpha:find("male"), "race from the club, sex unknown (Mage)")
+            check(alpha:find("Alchemy, Herbalism"), "two professions")
+            show("menu with race and professions:", {alpha})
+            FULL_ROSTER[4][5] = "Priestess"
+            ns.Roster.Find("Delta").class = "Priestess"
+            local delta2 = linesOf("Delta")
+            -- ruRU names the race by sex (its table of female names), enUS adds the sex
+            check(delta2:find(LOCALE == "ruRU" and "Нежить" or "Undead, female", 1, true), "female by the class name")
+            check(not delta2:find("Professions") and not delta2:find("Профессии"), "no professions line without them")
+            local re = linesOf("Re Senpai")
+            check(re:find("Night Elf", 1, true) and re:find("Mining"), "client's own race first")
+            if LOCALE ~= "ruRU" then check(re:find("Night Elf, female", 1, true), "sex from the client") end
+            option("menu", "menuRace", false); option("menu", "menuProfessions", false)
+            check(not linesOf("Re Senpai"):find("Night Elf") and not linesOf("Re Senpai"):find("Mining"), "race and professions off")
+            option("menu", "menuRace", true); option("menu", "menuProfessions", true)
+            infos[11] = {guid = "Player-9"}
+            check(not linesOf("Alpha Beta"):find("Alchemy"), "a member id taken by someone else")
+            C_Club, C_CreatureInfo = nil, nil
         end
-        SlashCmdList.GUILDLENS("probe reset")
-        check(GuildLensDB.probe == nil, "probe reset")
 
         if MODERN then
             -- Guild chat: the GUID of the line comes from the chat message
