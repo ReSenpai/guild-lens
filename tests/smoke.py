@@ -216,6 +216,25 @@ def run(modern):
             show("menu, guild window, offline:", window)
             check(MENUS.MENU_UNIT_GUILD and MENUS.MENU_UNIT_GUILD_OFFLINE, "old guild frame menus hooked too")
 
+            -- The guild window's own chat: a community link, the club's id instead of a chat type
+            C_Club = {GetGuildClubId = function() return 42 end}
+            local clubChat = menu({which = "FRIEND", name = "Alpha Beta", communityClubID = "42", communityStreamID = "1"})
+            check(clubChat[2] and clubChat[2]:find("60"), "name in the guild window's chat")
+            show("menu, guild window chat:", clubChat)
+            check(#menu({which = "FRIEND", name = "Alpha Beta", communityClubID = "7"}) == 0, "another community's chat")
+            C_Club = nil
+            check(#menu({which = "FRIEND", name = "Alpha Beta", communityClubID = "42"}) == 0, "no club API, nothing")
+
+            -- /glens debug: menus recorded while on, forgotten when turned off
+            SlashCmdList.GUILDLENS("debug")
+            menu({which = "FRIEND", name = "Alpha Beta", chatType = "WHISPER", chatFrame = ChatFrame1})
+            local recorded = GuildLensDB.debugMenus
+            check(recorded and #recorded == 1 and recorded[1].tag == "MENU_UNIT_FRIEND" and recorded[1].resolved == false
+                and recorded[1].context.chatType == "WHISPER" and recorded[1].context.chatFrame == "<table>", "menu recorded")
+            check(GuildLensDB.debug == true, "debug saved")
+            SlashCmdList.GUILDLENS("debug")
+            check(GuildLensDB.debugMenus == nil and not GuildLensDB.debug, "debug off, records forgotten")
+
             -- A broken lookup is reported, the menu still opens
             local find = ns.Roster.Find
             ns.Roster.Find = function() error("boom") end
