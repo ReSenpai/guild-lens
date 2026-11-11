@@ -6,7 +6,6 @@ without it (Classic Era) get nothing yet.
 An error here must not take the menu with it: it is reported and the menu opens as usual.
 ]]
 local _, ns = ...
-local L = ns.L
 
 local ContextMenu = {}
 ns.ContextMenu = ContextMenu
@@ -25,7 +24,6 @@ function ContextMenu.Modify(_, root, context)
     ns.Roster.Request()
     local lines = ns.Lines.ForName(name, guid)
     root:CreateDivider()
-    root:CreateTitle(L.MenuTitle)
     for _, text in ipairs(lines) do
         root:CreateTitle(text)
     end

@@ -62,13 +62,27 @@ function Lines.RankName(rank)
     return (ns.RankNames and ns.RankNames[rank]) or rank
 end
 
---- What stands for the guild channel in a guild chat line: the sender's class icon and level.
-function Lines.ChatTag(member)
-    local icon = Lines.ClassIcon(member.classFile, 0)
-    if not icon or type(member.level) ~= "number" or member.level <= 0 then
+--- What stands for the guild channel in a guild chat line: the parts of the sender asked for in show
+--- ({icon, level, zone}) in square brackets, as "[<icon>26, Duskwood]"; nil when none of them is known.
+function Lines.ChatTag(member, show)
+    local head = ""
+    if show.icon then
+        head = Lines.ClassIcon(member.classFile, 0) or ""
+    end
+    if show.level and type(member.level) == "number" and member.level > 0 then
+        head = head .. member.level
+    end
+    local parts = {}
+    if head ~= "" then
+        table.insert(parts, head)
+    end
+    if show.zone and Filled(member.zone) then
+        table.insert(parts, member.zone)
+    end
+    if #parts == 0 then
         return nil
     end
-    return icon .. member.level
+    return "[" .. table.concat(parts, ", ") .. "]"
 end
 
 --- How long ago an offline member was last seen, in the largest unit the roster gives.

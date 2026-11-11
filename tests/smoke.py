@@ -155,13 +155,25 @@ def run(modern):
         check(ns.Lines.ClassIcon("ROGUE", 0) ~= nil, "rogue icon (fallback cuts on the modern stub)")
         check(ns.Lines.ClassIcon("MONK", 14) == nil, "no icon for an unknown class")
 
-        -- Guild chat: [Guild] becomes the sender's icon and level, the link stays
+        -- Guild chat: as the game has it until a part is turned on
         local GUILD_LINE = "|Hchannel:GUILD|h[Guild]|h |Hplayer:Alpha Beta" .. suffix .. ":5:GUILD:|h[Alpha Beta]|h: hi"
         ChatFrame1:AddMessage(GUILD_LINE, 0.25, 1, 0.25)
-        local line = CHAT_LINE[1]
-        check(line:find("|Hchannel:GUILD|h|T", 1, true) and line:find("|t60|h |Hplayer:Alpha Beta", 1, true), "guild tag replaced")
-        check(not line:find("[Guild]", 1, true) and line:sub(-4) == ": hi" and CHAT_LINE[2] == 0.25, "rest of the line and colour kept")
-        out[#out + 1] = "chat: " .. line
+        check(CHAT_LINE[1] == GUILD_LINE, "nothing changed by default")
+        local ICON = "|TInterface\\TargetingFrame\\UI-Classes-Circles:0:0:0:0:256:256:64:127:0:64|t"
+        local function tag(...)
+            for _, command in ipairs({...}) do SlashCmdList.GUILDLENS("chat " .. command) end
+            ChatFrame1:AddMessage(GUILD_LINE, 0.25, 1, 0.25)
+            return CHAT_LINE[1]
+        end
+        local expected = "|Hchannel:GUILD|h[" .. ICON .. "60]|h |Hplayer:Alpha Beta" .. suffix .. ":5:GUILD:|h[Alpha Beta]|h: hi"
+        check(tag("icon", "level") == expected and CHAT_LINE[2] == 0.25, "[icon level], link and colour kept")
+        check(GuildLensDB.chatIcon == true and GuildLensDB.chatLevel == true, "saved")
+        out[#out + 1] = "chat: " .. CHAT_LINE[1]
+        check(tag("zone"):find("[" .. ICON .. "60, Orgrimmar]|h", 1, true), "[icon level, zone]")
+        check(tag("icon"):find("|h[60, Orgrimmar]|h", 1, true), "[level, zone]")
+        check(tag("level"):find("|h[Orgrimmar]|h", 1, true), "[zone]")
+        check(tag("off") == GUILD_LINE, "all off")
+        tag("level")
         local stranger = "|Hchannel:GUILD|h[Guild]|h |Hplayer:Stranger:6:GUILD:|h[Stranger]|h: hi"
         ChatFrame1:AddMessage(stranger)
         check(CHAT_LINE[1] == stranger, "unknown sender left as is")
@@ -173,19 +185,16 @@ def run(modern):
         check(CHAT_LINE[1] == GUILD_LINE, "secret text left alone")
         SECRET = false
         SlashCmdList.GUILDLENS("chat")
-        ChatFrame1:AddMessage(GUILD_LINE)
-        check(CHAT_LINE[1] == GUILD_LINE and GuildLensDB.chatIcons == false, "turned off and saved")
-        SlashCmdList.GUILDLENS("chat")
-        ChatFrame1:AddMessage(GUILD_LINE)
-        check(CHAT_LINE[1] ~= GUILD_LINE, "turned on again")
+        SlashCmdList.GUILDLENS("chat nonsense")
+        tag("off")
 
         if MODERN then
             -- Guild chat: the GUID of the line comes from the chat message
             FIRE("CHAT_MSG_GUILD", "hello", "Alpha Beta", "", "", "", "", 0, 0, "", 0, 5, "Player-2-BBB")
             NOW = NOW + 60
             local titles = menu({which = "FRIEND", name = "Alpha Beta", chatType = "GUILD", lineID = "5"})
-            check(titles[1] == "---" and titles[2] == "GuildLens", "divider and title")
-            check(titles[3]:find("60"), "level in the menu")
+            check(titles[1] == "---" and not titles[2]:find("GuildLens"), "divider, no title")
+            check(titles[2]:find("60"), "level in the menu")
             check(ROSTER_REQUESTS == 2, "roster requested when the menu opened")
             show("menu, guild chat:", titles)
             menu({which = "FRIEND", name = "Alpha Beta", chatType = "GUILD", lineID = "5"})
@@ -203,7 +212,7 @@ def run(modern):
                 return titles
             end
             local window = guildMenu({which = "COMMUNITIES_GUILD_MEMBER", name = "Someone Else", guid = "Player-3-CCC", isGuildMember = true})
-            check(window[2] and window[2]:find("12"), "guild window member found by GUID")
+            check(window[1] and window[1]:find("12"), "guild window member found by GUID")
             show("menu, guild window, offline:", window)
             check(MENUS.MENU_UNIT_GUILD and MENUS.MENU_UNIT_GUILD_OFFLINE, "old guild frame menus hooked too")
 

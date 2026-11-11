@@ -5,7 +5,6 @@ end
 local L = ns.L
 
 -- Меню имени в чате гильдии
-L.MenuTitle = "GuildLens"
 L.Level = "уровень %d"
 L.Rank = "Ранг: %s"
 L.Status = "Статус: %s"
@@ -36,9 +35,13 @@ ns.RankNames = {
 -- Команды
 L.CommandsHeader = "команды:"
 L.CommandStatus = "/glens status — сколько участников гильдии известно"
-L.CommandChat = "/glens chat — иконка класса и уровень вместо [Гильдия] в чате гильдии: вкл/выкл"
-L.ChatIconsOn = "чат гильдии: иконка класса и уровень вместо названия канала."
-L.ChatIconsOff = "чат гильдии: как в игре."
+L.CommandChat = "/glens chat icon | level | zone — показывать в чате гильдии вместо [Гильдия] или перестать"
+L.CommandChatOff = "/glens chat off — чат гильдии как в игре"
+L.ChatShows = "чат гильдии: вместо [Гильдия] — %s."
+L.ChatAsGame = "чат гильдии как в игре."
+L.ChatPart_icon = "иконка класса"
+L.ChatPart_level = "уровень"
+L.ChatPart_zone = "зона"
 L.UnknownCommand = "неизвестная команда «%s»."
 L.NoGuild = "персонаж не в гильдии."
 L.RosterStatus = "ростер гильдии: участников %d, в сети %d."
