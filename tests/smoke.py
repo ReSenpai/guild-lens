@@ -157,6 +157,18 @@ def run(modern):
             check(#menu({which = "FRIEND", name = "Gamma", chatType = "OFFICER", lineID = "7"}) > 2, "officer chat counts")
             show("menu, someone who left:", menu({which = "FRIEND", name = "Stranger", chatType = "GUILD", lineID = "8"}))
 
+            -- The guild window (J): the menu has the GUID itself
+            local function guildMenu(context)
+                local titles = {}
+                local root = {CreateDivider = function() end, CreateTitle = function(_, text) titles[#titles + 1] = strip(text) end}
+                MENUS.MENU_UNIT_COMMUNITIES_GUILD_MEMBER(nil, root, context)
+                return titles
+            end
+            local window = guildMenu({which = "COMMUNITIES_GUILD_MEMBER", name = "Someone Else", guid = "Player-3-CCC", isGuildMember = true})
+            check(window[2] and window[2]:find("12"), "guild window member found by GUID")
+            show("menu, guild window, offline:", window)
+            check(MENUS.MENU_UNIT_GUILD and MENUS.MENU_UNIT_GUILD_OFFLINE, "old guild frame menus hooked too")
+
             -- A broken lookup is reported, the menu still opens
             local find = ns.Roster.Find
             ns.Roster.Find = function() error("boom") end

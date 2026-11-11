@@ -1,7 +1,7 @@
 --[[
 The lines shown about a guild member: class and level, rank, online status (or when last seen), zone and the public
 note. A field the roster does not have is left out. Plain text with colour codes, so it can go into a menu, a tooltip
-or the chat alike.
+or the chat alike. Only characters the game's fonts have: no "·" (the ruRU font draws it as a box).
 ]]
 local _, ns = ...
 local L = ns.L
@@ -9,8 +9,8 @@ local L = ns.L
 local Lines = {}
 ns.Lines = Lines
 
-local MAX_NOTE = 80
-local GREEN, GREY, YELLOW = "ff40ff40", "ff9d9d9d", "ffffd100"
+-- Labels stay in the menu's own gold; values are white, so they stand out from them.
+local GREEN, GREY, WHITE = "ff40ff40", "ff9d9d9d", "ffffffff"
 
 local function Color(color, text)
     return "|c" .. color .. text .. "|r"
@@ -76,26 +76,23 @@ function Lines.ForMember(member)
         table.insert(first, L.Level:format(member.level))
     end
     if #first > 0 then
-        table.insert(lines, table.concat(first, " · "))
+        table.insert(lines, table.concat(first, ", "))
     end
     if Filled(member.rank) then
-        table.insert(lines, L.Rank:format(Color(YELLOW, member.rank)))
+        table.insert(lines, L.Rank:format(Color(WHITE, member.rank)))
     end
     table.insert(lines, L.Status:format(Status(member)))
     if Filled(member.zone) then
-        table.insert(lines, L.Zone:format(member.zone))
+        table.insert(lines, L.Zone:format(Color(WHITE, member.zone)))
     end
     if Filled(member.note) then
-        local note = member.note
-        if #note > MAX_NOTE then
-            note = note:sub(1, MAX_NOTE) .. "..."
-        end
-        table.insert(lines, L.Note:format(note))
+        -- The game keeps guild notes short (31 characters), so a note fits on one line as it is.
+        table.insert(lines, L.Note:format(Color(WHITE, member.note)))
     end
     return lines
 end
 
---- The lines for a name in guild chat: the member's, or why there are none.
+--- The lines for a name in a guild menu: the member's, or why there are none.
 function Lines.ForName(name, guid)
     local member = ns.Roster.Find(name, guid)
     if member then
