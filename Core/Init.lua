@@ -11,6 +11,12 @@ ns.L = setmetatable({}, {
 })
 
 local defaults = {
+    -- What the menu of a guild member's name shows besides class and level.
+    menuIcon = true,
+    menuRank = true,
+    menuStatus = true,
+    menuZone = true,
+    menuNote = true,
     -- What guild chat lines show of the sender in place of "[Guild]": nothing by default, the line as the game has it.
     chatIcon = false,
     chatLevel = false,
@@ -40,8 +46,6 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function (_, event, loaded)
     if event == "ADDON_LOADED" and loaded == addonName then
         GuildLensDB = GuildLensDB or {}
-        -- What the development probe recorded before 0.1.0 (names of guild members): no longer needed.
-        GuildLensDB.probe = nil
         ns.db = GuildLensDB
         ns.settings = setmetatable(GuildLensDB, {__index = defaults})
     elseif event == "PLAYER_LOGIN" then

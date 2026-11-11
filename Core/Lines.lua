@@ -1,6 +1,6 @@
 --[[
 The lines shown about a guild member: class (icon and name) and level, rank, online status (or when last seen), zone and the public
-note. A field the roster does not have is left out. Plain text with colour codes, so it can go into a menu, a tooltip
+note, each but the first as the options say. A field the roster does not have is left out. Plain text with colour codes, so it can go into a menu, a tooltip
 or the chat alike. Only characters the game's fonts have: no "·" (the ruRU font draws it as a box).
 ]]
 local _, ns = ...
@@ -121,7 +121,7 @@ function Lines.ForMember(member)
     local first = {}
     if Filled(member.class) then
         local color = ClassColor(member.classFile)
-        local icon = Lines.ClassIcon(member.classFile, 14)
+        local icon = ns.settings.menuIcon and Lines.ClassIcon(member.classFile, 14)
         table.insert(first, (icon and icon .. " " or "") .. (color and Color(color, member.class) or member.class))
     end
     if type(member.level) == "number" and member.level > 0 then
@@ -130,14 +130,17 @@ function Lines.ForMember(member)
     if #first > 0 then
         table.insert(lines, table.concat(first, ", "))
     end
-    if Filled(member.rank) then
+    local settings = ns.settings
+    if settings.menuRank and Filled(member.rank) then
         table.insert(lines, L.Rank:format(Color(WHITE, Lines.RankName(member.rank))))
     end
-    table.insert(lines, L.Status:format(Status(member)))
-    if Filled(member.zone) then
+    if settings.menuStatus then
+        table.insert(lines, L.Status:format(Status(member)))
+    end
+    if settings.menuZone and Filled(member.zone) then
         table.insert(lines, L.Zone:format(Color(WHITE, member.zone)))
     end
-    if Filled(member.note) then
+    if settings.menuNote and Filled(member.note) then
         -- The game keeps guild notes short (31 characters), so a note fits on one line as it is.
         table.insert(lines, L.Note:format(Color(WHITE, member.note)))
     end

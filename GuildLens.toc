@@ -10,6 +10,8 @@
 ## X-License: GPL-3.0-or-later
 ## X-Website: https://github.com/ReSenpai/guild-lens
 
+Libs\Libs.xml
+
 Core\Init.lua
 Locales\enUS.lua
 Locales\ruRU.lua
@@ -19,3 +21,5 @@ UI\ChatResolver.lua
 Core\Lines.lua
 UI\ContextMenu.lua
 UI\GuildChat.lua
+Core\Options.lua
+Dev\Probe.lua

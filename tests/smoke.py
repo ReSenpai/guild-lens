@@ -65,6 +65,15 @@ FULL_ROSTER = {
 LAST_ONLINE[3] = {0, 0, 3, 5}
 ROSTER_REQUESTS = 0
 local function request() ROSTER_REQUESTS = ROSTER_REQUESTS + 1 end
+OPTIONS_OPENED = 0
+LibStub = function(name)
+    return {RegisterOptionsTable = function(_, addon, options) REGISTERED = options end, AddToBlizOptions = function() end,
+            Open = function() OPTIONS_OPENED = OPTIONS_OPENED + 1 end}
+end
+C_Timer = {After = function(_, fn) TIMERS = (TIMERS or 0) + 1 end}
+UnitName = function() return "Re" end
+UnitGUID = function() return "Player-1-AAA" end
+GetPlayerInfoByGUID = function(guid) return "Mage", "MAGE", "Human", "Human", 3, "Alpha Beta", "" end
 if MODERN then
     C_GuildInfo = {GuildRoster = request}
     CLASS_ICON_TCOORDS = {MAGE = {0.25, 0.49609375, 0, 0.25}, HUNTER = {0, 0.25, 0.25, 0.5}}
@@ -81,7 +90,8 @@ TOCS = {True: "GuildLens.toc", False: "GuildLens_Vanilla.toc"}
 def addon_files(toc):
     for line in (ROOT / toc).read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if line and not line.startswith("#"):
+        # Libs/ (Ace3, behind the options window) is stubbed instead.
+        if line and not line.startswith("#") and not line.startswith("Libs"):
             yield line.replace("\\", "/")
 
 
@@ -112,10 +122,17 @@ def run(modern):
             for _, line in ipairs(lines) do out[#out + 1] = "  " .. line end
         end
 
-        GuildLensDB = {probe = {menus = {}}}
+        GuildLensDB = {}
         FIRE("ADDON_LOADED", "GuildLens")
-        check(GuildLensDB.probe == nil, "probe data dropped")
         FIRE("PLAYER_LOGIN")
+        check(REGISTERED == ns.options, "options registered")
+        local function option(section, key, value)
+            local toggle = ns.options.args[section].args[key]
+            check(toggle and toggle.type == "toggle", "option " .. section .. "." .. key)
+            if value ~= nil then toggle.set(nil, value) end
+            return toggle.get()
+        end
+        check(option("menu", "menuRank") == true and option("chat", "chatZone") == false, "option defaults")
         check(ROSTER_REQUESTS == 1, "roster requested at login")
 
         -- Before the roster arrives
@@ -141,6 +158,13 @@ def run(modern):
         show("offline under an hour, no zone:", delta)
         check(#delta == 3, "empty zone and note left out")
 
+        -- Menu lines as the options say: class and level stay
+        option("menu", "menuRank", false); option("menu", "menuStatus", false); option("menu", "menuIcon", false)
+        local short = ns.Lines.ForMember(ns.Roster.Find("Alpha Beta"))
+        check(#short == 3 and not strip(short[1]):find("|T", 1, true) and strip(short[2]):find("Orgrimmar"), "rank, status, icon off")
+        check(GuildLensDB.menuRank == false, "menu option saved")
+        option("menu", "menuRank", true); option("menu", "menuStatus", true); option("menu", "menuIcon", true)
+
         -- The roster is rebuilt only after an update
         ROSTER = {}
         check(ns.Roster.Find("Alpha Beta"), "cache kept without an update")
@@ -160,20 +184,20 @@ def run(modern):
         ChatFrame1:AddMessage(GUILD_LINE, 0.25, 1, 0.25)
         check(CHAT_LINE[1] == GUILD_LINE, "nothing changed by default")
         local ICON = "|TInterface\\TargetingFrame\\UI-Classes-Circles:0:0:0:0:256:256:64:127:0:64|t"
-        local function tag(...)
-            for _, command in ipairs({...}) do SlashCmdList.GUILDLENS("chat " .. command) end
+        local function tag(icon, level, zone)
+            option("chat", "chatIcon", icon); option("chat", "chatLevel", level); option("chat", "chatZone", zone)
             ChatFrame1:AddMessage(GUILD_LINE, 0.25, 1, 0.25)
             return CHAT_LINE[1]
         end
         local expected = "|Hchannel:GUILD|h[" .. ICON .. "60]|h |Hplayer:Alpha Beta" .. suffix .. ":5:GUILD:|h[Alpha Beta]|h: hi"
-        check(tag("icon", "level") == expected and CHAT_LINE[2] == 0.25, "[icon level], link and colour kept")
+        check(tag(true, true, false) == expected and CHAT_LINE[2] == 0.25, "[icon level], link and colour kept")
         check(GuildLensDB.chatIcon == true and GuildLensDB.chatLevel == true, "saved")
         out[#out + 1] = "chat: " .. CHAT_LINE[1]
-        check(tag("zone"):find("[" .. ICON .. "60, Orgrimmar]|h", 1, true), "[icon level, zone]")
-        check(tag("icon"):find("|h[60, Orgrimmar]|h", 1, true), "[level, zone]")
-        check(tag("level"):find("|h[Orgrimmar]|h", 1, true), "[zone]")
-        check(tag("off") == GUILD_LINE, "all off")
-        tag("level")
+        check(tag(true, true, true):find("[" .. ICON .. "60, Orgrimmar]|h", 1, true), "[icon level, zone]")
+        check(tag(false, true, true):find("|h[60, Orgrimmar]|h", 1, true), "[level, zone]")
+        check(tag(false, false, true):find("|h[Orgrimmar]|h", 1, true), "[zone]")
+        check(tag(false, false, false) == GUILD_LINE, "all off")
+        tag(false, true, false)
         local stranger = "|Hchannel:GUILD|h[Guild]|h |Hplayer:Stranger:6:GUILD:|h[Stranger]|h: hi"
         ChatFrame1:AddMessage(stranger)
         check(CHAT_LINE[1] == stranger, "unknown sender left as is")
@@ -184,9 +208,30 @@ def run(modern):
         ChatFrame1:AddMessage(GUILD_LINE)
         check(CHAT_LINE[1] == GUILD_LINE, "secret text left alone")
         SECRET = false
-        SlashCmdList.GUILDLENS("chat")
-        SlashCmdList.GUILDLENS("chat nonsense")
-        tag("off")
+        tag(false, false, false)
+
+        -- /glens opens the options, /glens help lists the commands
+        SlashCmdList.GUILDLENS("")
+        check(OPTIONS_OPENED == 1, "options opened")
+        SlashCmdList.GUILDLENS("help")
+
+        -- The development probe
+        if MODERN then
+            C_Club = {GetGuildClubId = function() return 42 end, GetClubMembers = function() return {11, 12} end,
+                      GetMemberInfo = function(_, id) return {guid = id == 11 and "Player-2-BBB" or "Player-9", profession1Name = "Alchemy", nested = {a = {b = 1}}} end}
+            C_GuildInfo.GetPreferredPlaySettings = function(guid) if guid then error("no") end return {lfg = true} end
+        end
+        SlashCmdList.GUILDLENS("probe")
+        local probe = GuildLensDB.probe
+        check(probe and probe.race[1].info[3] == "Human" and #probe.members == 5 and probe.members[5].self, "probe: race and members")
+        if MODERN then
+            check(probe.club.count == 2 and probe.club.members[1].profession1Name == "Alchemy", "probe: club members")
+            check(probe.club.members[1].nested.a == "<table>", "probe: two levels deep")
+            check(probe.preferred.GetPreferredPlaySettings.none[1].lfg == true and probe.preferred.GetPreferredPlaySettings.guid.error, "probe: preferred")
+            C_Club = nil
+        end
+        SlashCmdList.GUILDLENS("probe reset")
+        check(GuildLensDB.probe == nil, "probe reset")
 
         if MODERN then
             -- Guild chat: the GUID of the line comes from the chat message

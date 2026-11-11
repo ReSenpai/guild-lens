@@ -10,12 +10,18 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 What the license covers
 -----------------------
-All of GuildLens's own code: Core/, Locales/ and the other folders of the addon.
+All of GuildLens's own code: Core/, Locales/, Sources/ and UI/.
 
 Data
 ----
 GuildLens ships no data of its own and sends nothing anywhere. It shows only what the game client itself tells the
 player about their guild (the guild roster).
+
+Third-party components
+----------------------
+Libs/ contains libraries of the Ace3 project (https://www.wowace.com/projects/ace3): LibStub, CallbackHandler-1.0,
+AceGUI-3.0 and AceConfig-3.0, copyright the Ace3 Development Team and their authors, released under their own
+BSD-style license, which allows them to be shipped with this program. They draw the options window.
 
 Unofficial project
 ------------------

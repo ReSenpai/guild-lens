@@ -1,24 +1,18 @@
 --[[
 Guild chat lines can show the sender's class icon, level and zone in place of the channel's name ("[Guild]"), each
-turned on by its own setting (chatIcon, chatLevel, chatZone); with none of them, guild chat is as the game shows it.
+turned on by its own option (chatIcon, chatLevel, chatZone); with none of them, guild chat is as the game shows it.
 
 Each chat window's AddMessage is wrapped: in a line with the guild channel's link, the link's text is replaced from the
 roster, so it stays clickable (a click starts a reply in guild chat). The sender is read from the line's player link.
 Left as they are: lines of other channels (officer chat keeps its name, to tell it apart), senders not in the roster,
 and text the client keeps from addons (secret values on modern clients).
-Until the options window (0.2), the settings are set with /glens chat.
 ]]
 local _, ns = ...
-local L = ns.L
 
 local GuildChat = {}
 ns.GuildChat = GuildChat
 
 local CHANNEL_LINK = "|Hchannel:GUILD|h"
-
--- /glens chat <part>: the setting behind each part.
-local PARTS = {icon = "chatIcon", level = "chatLevel", zone = "chatZone"}
-local PART_ORDER = {"icon", "level", "zone"}
 
 local function Shown()
     local settings = ns.settings
@@ -69,28 +63,3 @@ ns.OnLogin(function ()
         end
     end
 end)
-
-local function PrintState()
-    local on = {}
-    for _, part in ipairs(PART_ORDER) do
-        if ns.settings[PARTS[part]] then
-            table.insert(on, L["ChatPart_" .. part])
-        end
-    end
-    ns.Print(#on > 0 and L.ChatShows:format(table.concat(on, ", ")) or L.ChatAsGame)
-end
-
-ns.AddCommand("chat", function (rest)
-    local part = rest:lower()
-    if PARTS[part] then
-        ns.settings[PARTS[part]] = not ns.settings[PARTS[part]]
-    elseif part == "off" then
-        for _, setting in pairs(PARTS) do
-            ns.settings[setting] = false
-        end
-    elseif part ~= "" then
-        ns.Print(L.UnknownCommand:format("chat " .. rest))
-        return
-    end
-    PrintState()
-end, L.CommandChat, L.CommandChatOff)
