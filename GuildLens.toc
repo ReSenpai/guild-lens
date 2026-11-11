@@ -1,0 +1,17 @@
+## Interface: 16001
+## Title: GuildLens
+## Notes: See your guildmates at a glance: level, class, rank and more in the menu of a name in guild chat. Commands: /glens
+## Notes-ruRU: Участник гильдии с первого взгляда: уровень, класс, ранг и другое в меню имени в чате гильдии. Команды: /glens
+## Author: ReSenpai
+## Version: 0.1.0
+## IconTexture: Interface\Icons\INV_Misc_Spyglass_02
+## SavedVariables: GuildLensDB
+## X-Category: Chat & Communication
+## X-License: GPL-3.0-or-later
+## X-Website: https://github.com/ReSenpai/guild-lens
+
+Core\Init.lua
+Locales\enUS.lua
+Locales\ruRU.lua
+Core\Commands.lua
+Dev\Probe.lua

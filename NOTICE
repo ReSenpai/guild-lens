@@ -1,0 +1,24 @@
+GuildLens
+Copyright (C) 2026 ReSenpai
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+version. See the LICENSE file for the full text.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+What the license covers
+-----------------------
+All of GuildLens's own code: Core/, Locales/ and the other folders of the addon.
+
+Data
+----
+GuildLens ships no data of its own and sends nothing anywhere. It shows only what the game client itself tells the
+player about their guild (the guild roster).
+
+Unofficial project
+------------------
+GuildLens is an unofficial fan project. It is not affiliated with or endorsed by Blizzard Entertainment. World of
+Warcraft and Warcraft are trademarks or registered trademarks of Blizzard Entertainment, Inc. Game icons and textures
+the addon uses are not part of this program: they are referenced by path and loaded from the game client.

@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in the addon does not work as it should.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what you saw instead. A screenshot helps.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      description: From the AddOns list or the release you downloaded.
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Game client
+      options:
+        - "World of Warcraft: Forever"
+        - Classic Era
+        - Other
+  - type: dropdown
+    id: language
+    attributes:
+      label: Game client language
+      options:
+        - English
+        - Russian
+        - Other
+  - type: textarea
+    id: addons
+    attributes:
+      label: Chat addons
+      description: Other addons that change the chat or its menus (Prat, Chattynator, ElvUI and the like), if any.
+  - type: textarea
+    id: errors
+    attributes:
+      label: Lua errors
+      description: If the game showed an error (/console scriptErrors 1, or an addon like BugSack), paste it here.
+      render: text
