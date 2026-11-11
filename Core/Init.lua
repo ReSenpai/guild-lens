@@ -35,6 +35,8 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function (_, event, loaded)
     if event == "ADDON_LOADED" and loaded == addonName then
         GuildLensDB = GuildLensDB or {}
+        -- What the development probe recorded before 0.1.0 (names of guild members): no longer needed.
+        GuildLensDB.probe = nil
         ns.db = GuildLensDB
         ns.settings = setmetatable(GuildLensDB, {__index = defaults})
     elseif event == "PLAYER_LOGIN" then

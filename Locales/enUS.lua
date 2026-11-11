@@ -1,20 +1,29 @@
 local _, ns = ...
 local L = ns.L
 
+-- The menu of a name in guild chat
+L.MenuTitle = "GuildLens"
+L.Level = "level %d"
+L.Rank = "Rank: %s"
+L.Status = "Status: %s"
+L.Online = "online"
+L.Away = "away"
+L.Busy = "busy"
+L.Offline = "offline"
+L.OfflineSince = "offline, last seen %s"
+L.YearsAgo = "%d yr ago"
+L.MonthsAgo = "%d mo ago"
+L.DaysAgo = "%d d ago"
+L.HoursAgo = "%d h ago"
+L.JustNow = "less than an hour ago"
+L.Zone = "Zone: %s"
+L.Note = "Note: %s"
+L.NotLoaded = "The guild roster isn't loaded yet"
+L.NotInRoster = "Not in the guild roster"
+
 -- Slash commands
 L.CommandsHeader = "commands:"
-L.CommandProbe = "/glens probe — record what this client offers for the guild roster and the chat menu"
-L.CommandProbeReset = "/glens probe reset — forget what was recorded"
+L.CommandStatus = "/glens status — how many guild members are known"
 L.UnknownCommand = "unknown command \"%s\"."
-
--- Probe (development only)
-L.ProbeClient = "client %s (build %s, interface %s), locale %s"
-L.ProbeGuild = "guild: %s, members: %s"
-L.ProbeNoGuild = "the character is not in a guild"
-L.ProbeFunctions = "roster functions: %s"
-L.ProbeMissing = "missing: %s"
-L.ProbeMenu = "menu: %s"
-L.ProbeMenuModern = "Menu.ModifyMenu (hooked %d menus)"
-L.ProbeMenuOld = "old drop-down menus"
-L.ProbeNext = "Now right-click a name in guild chat, then type /reload: everything is written to the saved variables."
-L.ProbeReset = "recorded data forgotten."
+L.NoGuild = "the character is not in a guild."
+L.RosterStatus = "guild roster: %d members, %d online."

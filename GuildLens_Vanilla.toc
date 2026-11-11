@@ -14,4 +14,7 @@ Core\Init.lua
 Locales\enUS.lua
 Locales\ruRU.lua
 Core\Commands.lua
-Dev\Probe.lua
+Sources\GuildRoster.lua
+UI\ChatResolver.lua
+Core\Lines.lua
+UI\ContextMenu.lua

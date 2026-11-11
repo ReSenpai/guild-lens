@@ -16,7 +16,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TOCS = ("GuildLens_Vanilla.toc", "GuildLens.toc")
 # What goes into the zip and so needs a new version when it changes
-ADDON_PATHS = ("Core/", "Dev/", "Libs/", "Locales/", "Sources/", "UI/", *TOCS)
+ADDON_PATHS = ("Core/", "Libs/", "Locales/", "Sources/", "UI/", *TOCS)
 VERSION_LINE = re.compile(r"^## Version:\s*(\S+)\s*$", re.MULTILINE)
 
 
