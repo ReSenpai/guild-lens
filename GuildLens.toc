@@ -18,3 +18,4 @@ Sources\GuildRoster.lua
 UI\ChatResolver.lua
 Core\Lines.lua
 UI\ContextMenu.lua
+UI\GuildChat.lua

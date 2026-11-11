@@ -38,6 +38,10 @@ FIRE = function(event, ...)
 end
 DEFAULT_CHAT_FRAME = {AddMessage = function(_, text) CHAT[#CHAT + 1] = text end}
 ChatFrame1 = CreateFrame("ScrollingMessageFrame", "ChatFrame1")
+ChatFrame1.AddMessage = function(self, text, r, g, b) CHAT_LINE = {text, r, g, b} end
+NUM_CHAT_WINDOWS = 1
+SECRET = false
+issecretvalue = function() return SECRET end
 GetLocale = function() return LOCALE end
 NOW = 100
 GetTime = function() return NOW end
@@ -63,6 +67,7 @@ ROSTER_REQUESTS = 0
 local function request() ROSTER_REQUESTS = ROSTER_REQUESTS + 1 end
 if MODERN then
     C_GuildInfo = {GuildRoster = request}
+    CLASS_ICON_TCOORDS = {MAGE = {0.25, 0.49609375, 0, 0.25}, HUNTER = {0, 0.25, 0.25, 0.5}}
     MENUS = {}
     Menu = {ModifyMenu = function(tag, callback) MENUS[tag] = callback end}
 else
@@ -140,6 +145,39 @@ def run(modern):
         ROSTER = {}
         check(ns.Roster.Find("Alpha Beta"), "cache kept without an update")
         ROSTER = FULL_ROSTER
+
+        -- Rank names: the game's defaults in the client's language, a guild's own as they are
+        check(ns.Lines.RankName("Veteran") == (LOCALE == "ruRU" and "Ветеран" or "Veteran"), "default rank translated")
+        check(ns.Lines.RankName("Raid Lead") == "Raid Lead", "own rank kept")
+
+        -- Class icons: the mage's cut is 64..127 × 0..64 of the 256 texture, in both tables
+        check(ns.Lines.ClassIcon("MAGE", 14) == "|TInterface\\TargetingFrame\\UI-Classes-Circles:14:14:0:0:256:256:64:127:0:64|t", "mage icon")
+        check(ns.Lines.ClassIcon("ROGUE", 0) ~= nil, "rogue icon (fallback cuts on the modern stub)")
+        check(ns.Lines.ClassIcon("MONK", 14) == nil, "no icon for an unknown class")
+
+        -- Guild chat: [Guild] becomes the sender's icon and level, the link stays
+        local GUILD_LINE = "|Hchannel:GUILD|h[Guild]|h |Hplayer:Alpha Beta" .. suffix .. ":5:GUILD:|h[Alpha Beta]|h: hi"
+        ChatFrame1:AddMessage(GUILD_LINE, 0.25, 1, 0.25)
+        local line = CHAT_LINE[1]
+        check(line:find("|Hchannel:GUILD|h|T", 1, true) and line:find("|t60|h |Hplayer:Alpha Beta", 1, true), "guild tag replaced")
+        check(not line:find("[Guild]", 1, true) and line:sub(-4) == ": hi" and CHAT_LINE[2] == 0.25, "rest of the line and colour kept")
+        out[#out + 1] = "chat: " .. line
+        local stranger = "|Hchannel:GUILD|h[Guild]|h |Hplayer:Stranger:6:GUILD:|h[Stranger]|h: hi"
+        ChatFrame1:AddMessage(stranger)
+        check(CHAT_LINE[1] == stranger, "unknown sender left as is")
+        local officer = "|Hchannel:OFFICER|h[Officer]|h |Hplayer:Alpha Beta:7:OFFICER:|h[Alpha Beta]|h: hi"
+        ChatFrame1:AddMessage(officer)
+        check(CHAT_LINE[1] == officer, "officer chat left as is")
+        SECRET = true
+        ChatFrame1:AddMessage(GUILD_LINE)
+        check(CHAT_LINE[1] == GUILD_LINE, "secret text left alone")
+        SECRET = false
+        SlashCmdList.GUILDLENS("chat")
+        ChatFrame1:AddMessage(GUILD_LINE)
+        check(CHAT_LINE[1] == GUILD_LINE and GuildLensDB.chatIcons == false, "turned off and saved")
+        SlashCmdList.GUILDLENS("chat")
+        ChatFrame1:AddMessage(GUILD_LINE)
+        check(CHAT_LINE[1] ~= GUILD_LINE, "turned on again")
 
         if MODERN then
             -- Guild chat: the GUID of the line comes from the chat message

@@ -10,7 +10,10 @@ ns.L = setmetatable({}, {
     end
 })
 
-local defaults = {}
+local defaults = {
+    -- Guild chat lines show the sender's class icon and level instead of "[Guild]".
+    chatIcons = true
+}
 
 -- Read through ns.settings.<name>: the table is replaced once the saved variables are loaded.
 ns.settings = setmetatable({}, {__index = defaults})
