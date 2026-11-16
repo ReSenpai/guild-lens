@@ -1,8 +1,8 @@
 --[[
 Adds the member's lines to the game's own menu of a guild member's name, after its items, as titles (not clickable),
 so none of the game's items move or change: names in guild chat, in the guild window's member list and in the guild
-window's own chat. The menu system of the modern client (Menu.ModifyMenu: chat names open the "FRIEND" menu on
-Forever, the guild window's list "COMMUNITIES_GUILD_MEMBER"); clients without it (Classic Era) get nothing yet.
+window's own chat. The menu system of the modern client (Menu.ModifyMenu, on Forever and Classic Era 1.15: chat
+names open the "FRIEND" menu, the guild window's list "COMMUNITIES_GUILD_MEMBER"); clients without it get nothing.
 An error here must not take the menu with it: it is reported and the menu opens as usual.
 
 /glens debug records the context of every menu opened here (the last MAX_DEBUG) into GuildLensDB.debugMenus, to see
